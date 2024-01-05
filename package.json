@@ -10,6 +10,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "axios": "^1.6.5",
     "theme-change": "^2.5.0",
     "vue": "^3.3.11",
     "vue-router": "^4.2.5"
