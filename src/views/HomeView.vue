@@ -1,30 +1,55 @@
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import axios from 'axios';
-
+import Search from '../components/Search.vue'
 
 const infoWeather = ref({})
 const apiDataLoaded = ref(false)
-
+const searchCityName = ref('')
+const searchTimer = ref(null)
+const key = ref(0)
 const imageURL = (imageName, format) => new URL(`../assets/icons/${imageName}.${format}`, import.meta.url).href
 
-axios.get('https://api.hgbrasil.com/weather?format=json-cors&key=6b858f9e')
-  .then(response => {
-    infoWeather.value = response.data.results
-    infoWeather.value.forecast.shift()
-    apiDataLoaded.value = true
-  })
-  .catch(error => {
-    console.log(error)
-  })
+const searchCity = () => {
+  axios.get(`https://api.hgbrasil.com/weather?format=json-cors&key=6b858f9e&city_name=${searchCityName.value}`)
+    .then(response => {
+      infoWeather.value = response.data.results
+      searchCityName.value = ''
+      key.value++
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
+
+watch(searchCityName, (value) => {
+  clearTimeout(searchTimer.value)
+  if (value) {
+    searchTimer.value = setTimeout(searchCity, 2000)
+  }
+})
+
+onMounted(() => {
+  axios.get('https://api.hgbrasil.com/weather?format=json-cors&key=6b858f9e&user_ip=remote')
+    .then(response => {
+      infoWeather.value = response.data.results
+      infoWeather.value.forecast.shift()
+      apiDataLoaded.value = true
+    })
+    .catch(error => {
+      console.log(error)
+    })
+})
 
 </script>
 
 <template>
   <div class="container flex flex-col items-center gap-8 py-9 px-6">
-    <header class="flex justify-end w-full">
-      <input type="checkbox" value="light" class="toggle theme-controller" />
+    <header class="flex justify-between w-full items-center">
+      <Search v-model="searchCityName" :key="key"/>
+      <input type="checkbox" value="night"
+        class="toggle theme-controller bg-amber-300 border-sky-400 [--tglbg:theme(colors.sky.500)] checked:bg-blue-300 checked:border-blue-800 checked:[--tglbg:theme(colors.blue.900)] row-start-1 col-start-1 col-span-2" />
     </header>
     <div class="info-weather w-full text-center flex flex-col items-center">
       <img class="w-48 h-48" v-if="apiDataLoaded" :src="imageURL(infoWeather.condition_slug, 'svg')" alt="">
@@ -39,12 +64,12 @@ axios.get('https://api.hgbrasil.com/weather?format=json-cors&key=6b858f9e')
       <span v-if="apiDataLoaded">{{ infoWeather.city }}</span>
       <div class="w-full flex justify-around text-xs pt-6">
         <div class="flex flex-col gap-2 items-start justify-between">
-          <p class="min-h-6">Nascer do sol: {{ infoWeather.sunrise }}</p>
-          <p class="min-h-6 text-center">Pôr do sol: {{ infoWeather.sunset }}</p>
+          <p class="min-h-6 flex items-center">Nascer do sol: {{ infoWeather.sunrise }}</p>
+          <p class="min-h-6 flex items-center text-center">Pôr do sol: {{ infoWeather.sunset }}</p>
         </div>
         <div class="flex flex-col gap-2 items-start justify-between">
-          <p class="min-h-6">Vento: {{ infoWeather.wind_speedy }}</p>
-          <p class="flex gap-2 items-center min-h-6">
+          <p class="min-h-6 flex items-center">Vento: {{ infoWeather.wind_speedy }}</p>
+          <p class="flex gap-2 items-center min-h-6 flex items-center">
             {{
               infoWeather.moon_phase === 'new' ? 'Lua nova' : '' ||
                 infoWeather.moon_phase === 'waxing_crescent' ? 'Lua crescente' : '' ||
