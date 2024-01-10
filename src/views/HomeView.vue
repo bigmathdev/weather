@@ -12,7 +12,7 @@ const key = ref(0)
 const imageURL = (imageName, format) => new URL(`../assets/icons/${imageName}.${format}`, import.meta.url).href
 
 const searchCity = () => {
-  axios.get(`https://api.hgbrasil.com/weather?format=json-cors&key=6b858f9e&city_name=${searchCityName.value}`)
+  axios.get(`https://api.hgbrasil.com/weather?format=json-cors&key=a70a1d42&city_name=${searchCityName.value}`)
     .then(response => {
       infoWeather.value = response.data.results
       searchCityName.value = ''
@@ -31,7 +31,7 @@ watch(searchCityName, (value) => {
 })
 
 onMounted(() => {
-  axios.get('https://api.hgbrasil.com/weather?format=json-cors&key=6b858f9e&user_ip=remote')
+  axios.get('https://api.hgbrasil.com/weather?format=json-cors&key=a70a1d42&user_ip=remote')
     .then(response => {
       infoWeather.value = response.data.results
       infoWeather.value.forecast.shift()
