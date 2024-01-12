@@ -2,7 +2,8 @@
 import { onMounted, ref, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import axios from 'axios';
-import Search from '../components/Search.vue'
+import Search from '@/components/Search.vue'
+import Map from '@/components/Map.vue';
 
 const infoWeather = ref({})
 const apiDataLoaded = ref(false)
@@ -110,5 +111,6 @@ onMounted(() => {
         </div>
       </div>
     </div>
+    <Map />
   </div>
 </template>
