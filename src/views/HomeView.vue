@@ -9,14 +9,28 @@ const infoWeather = ref({})
 const apiDataLoaded = ref(false)
 const searchCityName = ref('')
 const searchTimer = ref(null)
+const centerMap = ref()
 const key = ref(0)
+const mapKey = ref(0)
 const imageURL = (imageName, format) => new URL(`../assets/icons/${imageName}.${format}`, import.meta.url).href
+
+const searchCenter = () => {
+  axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${infoWeather.value.city_name}.json?proximity=ip&access_token=pk.eyJ1IjoiYmlnbWF0aGRldiIsImEiOiJjbHJiNTdpencwa2UxMnFtd3gzcGNyNmxiIn0.qvrW30umZJRA0LJfQkDlnw`)
+    .then(response => {
+      centerMap.value = response.data.features[0].center
+      mapKey.value++
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
 
 const searchCity = () => {
   axios.get(`https://api.hgbrasil.com/weather?format=json-cors&key=a70a1d42&city_name=${searchCityName.value}`)
     .then(response => {
       infoWeather.value = response.data.results
       searchCityName.value = ''
+      searchCenter()
       key.value++
     })
     .catch(error => {
@@ -27,7 +41,9 @@ const searchCity = () => {
 watch(searchCityName, (value) => {
   clearTimeout(searchTimer.value)
   if (value) {
-    searchTimer.value = setTimeout(searchCity, 2000)
+    searchTimer.value = setTimeout(() => {
+      searchCity()
+    }, 2000)
   }
 })
 
@@ -35,6 +51,7 @@ onMounted(() => {
   axios.get('https://api.hgbrasil.com/weather?format=json-cors&key=a70a1d42&user_ip=remote')
     .then(response => {
       infoWeather.value = response.data.results
+      searchCenter()
       infoWeather.value.forecast.shift()
       apiDataLoaded.value = true
     })
@@ -48,7 +65,7 @@ onMounted(() => {
 <template>
   <div class="container flex flex-col items-center gap-8 py-9 px-6">
     <header class="flex justify-between w-full items-center">
-      <Search v-model="searchCityName" :key="key"/>
+      <Search v-model="searchCityName" :key="key" />
       <input type="checkbox" value="night"
         class="toggle theme-controller bg-amber-300 border-sky-400 [--tglbg:theme(colors.sky.500)] checked:bg-blue-300 checked:border-blue-800 checked:[--tglbg:theme(colors.blue.900)] row-start-1 col-start-1 col-span-2" />
     </header>
@@ -111,6 +128,6 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <Map />
+    <Map v-if="centerMap" :centerMap="centerMap" :key="mapKey"/>
   </div>
 </template>
