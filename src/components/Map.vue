@@ -1,5 +1,4 @@
 <script setup>
-import axios from "axios";
 import mapboxgl from "mapbox-gl";
 import { onMounted, ref, watch } from "vue";
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmlnbWF0aGRldiIsImEiOiJjbHJiNTdpencwa2UxMnFtd3gzcGNyNmxiIn0.qvrW30umZJRA0LJfQkDlnw'
@@ -7,7 +6,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYmlnbWF0aGRldiIsImEiOiJjbHJiNTdpencwa2UxMnFtd
 const mapContainer = ref(null)
 const map = ref()
 const APIkey = '5okkmwDU3kpUj5y4nXMqIEmwKzy5v3yI'
-const dataField = 'precipitationIntensity'
+const dataField = 'cloudCover'
 const timeStamp = new Date().toISOString()
 
 const props = defineProps({
@@ -26,18 +25,18 @@ onMounted(() => {
 
   map.value.on('load', () => {
     map.value.addSource('infoWeather', {
-    type: 'raster',
-    tiles: [`https://api.tomorrow.io/v4/map/tile/{z}/{x}/{y}/${dataField}/${timeStamp}.png?apikey=${APIkey}`],
-    tileSize: 256,
-    atribuition: '&copy; <a href="https://www.tomorrow.io/weather-api">Powered by Tomorrow.io</a>'
-    }),
-    map.value.addLayer({
-      id: 'radar-tiles',
       type: 'raster',
-      source: 'infoWeather',
-      minzoom: 1,
-      maxzoom: 12
-    })
+      tiles: [`https://api.tomorrow.io/v4/map/tile/{z}/{x}/{y}/${dataField}/${timeStamp}.png?apikey=${APIkey}`],
+      tileSize: 256,
+      // atribuition: '&copy; <a href="https://www.tomorrow.io/weather-api">Powered by Tomorrow.io</a>'
+    }),
+      map.value.addLayer({
+        id: 'radar-tiles',
+        type: 'raster',
+        source: 'infoWeather',
+        minzoom: 1,
+        maxzoom: 12
+      })
   })
 })
 
@@ -49,6 +48,14 @@ onMounted(() => {
 
 <style>
 .map-container {
-  flex: 1;
+  @apply max-w-[86vw] flex-1;
+}
+
+.mapboxgl-canvas {
+  @apply rounded-3xl
+}
+
+.mapboxgl-control-container {
+  @apply hidden;
 }
 </style>

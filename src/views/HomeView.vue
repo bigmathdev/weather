@@ -5,17 +5,16 @@ import axios from 'axios';
 import Search from '@/components/Search.vue'
 import Map from '@/components/Map.vue';
 
-const infoWeather = ref({})
-const apiDataLoaded = ref(false)
 const searchCityName = ref('')
 const searchTimer = ref(null)
 const centerMap = ref()
 const key = ref(0)
 const mapKey = ref(0)
 const imageURL = (imageName, format) => new URL(`../assets/icons/${imageName}.${format}`, import.meta.url).href
+const infoWeatherStorage = ref()
 
-const searchCenter = () => {
-  axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${infoWeather.value.city_name}.json?proximity=ip&access_token=pk.eyJ1IjoiYmlnbWF0aGRldiIsImEiOiJjbHJiNTdpencwa2UxMnFtd3gzcGNyNmxiIn0.qvrW30umZJRA0LJfQkDlnw`)
+const searchCenterMap = (cityName) => {
+  axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${cityName}.json?proximity=ip&access_token=pk.eyJ1IjoiYmlnbWF0aGRldiIsImEiOiJjbHJiNTdpencwa2UxMnFtd3gzcGNyNmxiIn0.qvrW30umZJRA0LJfQkDlnw`)
     .then(response => {
       centerMap.value = response.data.features[0].center
       mapKey.value++
@@ -25,13 +24,27 @@ const searchCenter = () => {
     })
 }
 
+const stringifyAndParseInfoWeather = (object) => {
+  localStorage.setItem('infoWeather', JSON.stringify(object.data.results))
+  infoWeatherStorage.value = JSON.parse(localStorage.getItem('infoWeather'))
+}
+
 const searchCity = () => {
-  axios.get(`https://api.hgbrasil.com/weather?format=json-cors&key=a70a1d42&city_name=${searchCityName.value}`)
+  // Se for por input do usuário vai carregar pela variável searchCityName e se for a primeira vez da requisição vai carregar pelo IP
+  axios.get(`https://api.hgbrasil.com/weather?format=json-cors&key=a70a1d42${searchCityName.value ? `&city_name=${searchCityName.value}` : '&user_ip=remote'}`)
     .then(response => {
-      infoWeather.value = response.data.results
-      searchCityName.value = ''
-      searchCenter()
-      key.value++
+      if (searchCityName.value) {
+        stringifyAndParseInfoWeather(response)
+        searchCenterMap(infoWeatherStorage.value.city_name)
+        searchCityName.value = ''
+        key.value++
+      } else {
+        setTimeout(() => {
+          stringifyAndParseInfoWeather(response)
+          searchCenterMap(infoWeatherStorage.value.city_name)
+        }, 3000)
+        infoWeatherStorage.value.forecast.shift()
+      }
     })
     .catch(error => {
       console.log(error)
@@ -48,86 +61,88 @@ watch(searchCityName, (value) => {
 })
 
 onMounted(() => {
-  axios.get('https://api.hgbrasil.com/weather?format=json-cors&key=a70a1d42&user_ip=remote')
-    .then(response => {
-      infoWeather.value = response.data.results
-      searchCenter()
-      infoWeather.value.forecast.shift()
-      apiDataLoaded.value = true
-    })
-    .catch(error => {
-      console.log(error)
-    })
+  if (infoWeatherStorage.value == null || infoWeatherStorage.value == undefined) {
+    searchCity()
+  }
 })
 
 </script>
 
 <template>
-  <div class="container flex flex-col items-center gap-8 py-9 px-6">
-    <header class="flex justify-between w-full items-center">
-      <Search v-model="searchCityName" :key="key" />
-      <input type="checkbox" value="night"
-        class="toggle theme-controller bg-amber-300 border-sky-400 [--tglbg:theme(colors.sky.500)] checked:bg-blue-300 checked:border-blue-800 checked:[--tglbg:theme(colors.blue.900)] row-start-1 col-start-1 col-span-2" />
-    </header>
-    <div class="info-weather w-full text-center flex flex-col items-center">
-      <img class="w-48 h-48" v-if="apiDataLoaded" :src="imageURL(infoWeather.condition_slug, 'svg')" alt="">
-      <p v-else>Carregando..</p>
-      <p>{{ infoWeather.description }}</p>
-      <span class="text-[4rem] font-bold">{{ infoWeather.temp }}º</span>
+  <div>
+    <div class="container flex flex-col items-center gap-8 py-9 px-6" v-if="infoWeatherStorage">
+      <header class="flex justify-between w-full items-center">
+        <Search v-model="searchCityName" :key="key" />
+        <input type="checkbox" value="night"
+          class="toggle theme-controller bg-amber-300 border-sky-400 [--tglbg:theme(colors.sky.500)] checked:bg-blue-300 checked:border-blue-800 checked:[--tglbg:theme(colors.blue.900)] row-start-1 col-start-1 col-span-2" />
+      </header>
+      <div class="info-weather w-full text-center flex flex-col items-center">
+        <img class="w-48 h-48" :src="imageURL(infoWeatherStorage.condition_slug, 'svg')" alt="">
+        <p>{{ infoWeatherStorage.description }}</p>
+        <span class="text-[4rem] font-bold">{{ infoWeatherStorage.temp }}º</span>
 
-      <div class="flex gap-2">
-        <span v-if="apiDataLoaded" class="text-base font-medium">Máx: {{ infoWeather.forecast[0].max }}º</span>
-        <span v-if="apiDataLoaded" class="text-base font-medium">Min: {{ infoWeather.forecast[0].min }}º</span>
+        <div class="flex gap-2">
+          <span class="text-base font-medium">Máx: {{ infoWeatherStorage.forecast[0].max }}º</span>
+          <span class="text-base font-medium">Min: {{ infoWeatherStorage.forecast[0].min }}º</span>
+        </div>
+        <span>{{ infoWeatherStorage.city }}</span>
+        <div class="w-full flex justify-around text-xs pt-6">
+          <div class="flex flex-col gap-2 items-start justify-between">
+            <p class="min-h-6 flex items-center">Nascer do sol: {{ infoWeatherStorage.sunrise }}</p>
+            <p class="min-h-6 flex items-center text-center">Pôr do sol: {{ infoWeatherStorage.sunset
+            }}</p>
+          </div>
+          <div class="flex flex-col gap-2 items-start justify-between">
+            <p class="min-h-6 flex items-center">Vento: {{ infoWeatherStorage.wind_speedy }}</p>
+            <p class="gap-2 min-h-6 flex items-center">
+              {{
+                infoWeatherStorage.moon_phase === 'new' ? 'Lua nova' : '' ||
+                  infoWeatherStorage.moon_phase === 'waxing_crescent' ? 'Lua crescente' : '' ||
+                    infoWeatherStorage.moon_phase === 'first_quarter' ? 'Quarto crescente' : '' ||
+                      infoWeatherStorage.moon_phase === 'waxing_gibbous' ? 'Gibosa crescente' : '' ||
+                        infoWeatherStorage.moon_phase === 'full' ? 'Lua cheia' : '' ||
+                          infoWeatherStorage.moon_phase === 'waning_gibbous' ? 'Gibosa minguante' : '' ||
+                            infoWeatherStorage.moon_phase === 'last_quarter' ? 'Quarto minguante' : '' ||
+                              infoWeatherStorage.moon_phase === 'waning_crescent' ? 'Lua minguante' : ''
+              }}
+              <img :src="imageURL(infoWeatherStorage.moon_phase, 'png')" class="w-6 h-6" alt="">
+            </p>
+          </div>
+        </div>
       </div>
-      <span v-if="apiDataLoaded">{{ infoWeather.city }}</span>
-      <div class="w-full flex justify-around text-xs pt-6">
-        <div class="flex flex-col gap-2 items-start justify-between">
-          <p class="min-h-6 flex items-center">Nascer do sol: {{ infoWeather.sunrise }}</p>
-          <p class="min-h-6 flex items-center text-center">Pôr do sol: {{ infoWeather.sunset }}</p>
+      <div class="card w-full p-4 rounded-3xl gap-2 border-current border-[1px] ">
+        <div class="flex justify-between items-center">
+          <span>Semana</span>
+          <Icon icon="mdi:calendar-outline" />
         </div>
-        <div class="flex flex-col gap-2 items-start justify-between">
-          <p class="min-h-6 flex items-center">Vento: {{ infoWeather.wind_speedy }}</p>
-          <p class="flex gap-2 items-center min-h-6 flex items-center">
-            {{
-              infoWeather.moon_phase === 'new' ? 'Lua nova' : '' ||
-                infoWeather.moon_phase === 'waxing_crescent' ? 'Lua crescente' : '' ||
-                  infoWeather.moon_phase === 'first_quarter' ? 'Quarto crescente' : '' ||
-                    infoWeather.moon_phase === 'waxing_gibbous' ? 'Gibosa crescente' : '' ||
-                      infoWeather.moon_phase === 'full' ? 'Lua cheia' : '' ||
-                        infoWeather.moon_phase === 'waning_gibbous' ? 'Gibosa minguante' : '' ||
-                          infoWeather.moon_phase === 'last_quarter' ? 'Quarto minguante' : '' ||
-                            infoWeather.moon_phase === 'waning_crescent' ? 'Lua minguante' : ''
-            }}
-            <img :src="imageURL(infoWeather.moon_phase, 'png')" class="w-6 h-6" alt="">
-          </p>
+        <div class="flex flex-col gap-2 w-full justify-between">
+          <div class="flex items-center justify-between" v-for="forecast in infoWeatherStorage.forecast">
+            <span class="min-w-[4.12rem]">
+              {{
+                forecast.weekday === "Dom" ? 'Domingo' : '' ||
+                  forecast.weekday === "Seg" ? 'Segunda' : '' ||
+                    forecast.weekday === "Ter" ? 'Terça' : '' ||
+                      forecast.weekday === "Qua" ? 'Quarta' : '' ||
+                        forecast.weekday === "Qui" ? 'Quinta' : '' ||
+                          forecast.weekday === "Sex" ? 'Sexta' : '' ||
+                            forecast.weekday === "Sáb" ? 'Sábado' : ''
+              }}
+            </span>
+            <span class="min-w-[2.4rem]">{{ forecast.rain_probability }}%</span>
+            <img :src="imageURL(forecast.condition, 'svg')" class="w-8 h-8" alt="">
+            <span>{{ forecast.max }}º</span>
+            <span>{{ forecast.min }}º</span>
+          </div>
         </div>
+      </div>
+      <div class="layout">
+        <Map v-if="centerMap" :centerMap="centerMap" :key="mapKey" />
       </div>
     </div>
-    <div class="card w-full p-4 rounded-3xl gap-2 border-current border-[1px] ">
-      <div class="flex justify-between items-center">
-        <span>Semana</span>
-        <Icon icon="mdi:calendar-outline" />
-      </div>
-      <div class="flex flex-col gap-2 w-full justify-between">
-        <div class="flex items-center justify-between" v-for="forecast in infoWeather.forecast">
-          <span class="min-w-[4.12rem]">
-            {{
-              forecast.weekday === "Dom" ? 'Domingo' : '' ||
-                forecast.weekday === "Seg" ? 'Segunda' : '' ||
-                  forecast.weekday === "Ter" ? 'Terça' : '' ||
-                    forecast.weekday === "Qua" ? 'Quarta' : '' ||
-                      forecast.weekday === "Qui" ? 'Quinta' : '' ||
-                        forecast.weekday === "Sex" ? 'Sexta' : '' ||
-                          forecast.weekday === "Sáb" ? 'Sábado' : ''
-            }}
-          </span>
-          <span class="min-w-[2.4rem]">{{ forecast.rain_probability }}%</span>
-          <img v-if="apiDataLoaded" :src="imageURL(forecast.condition, 'svg')" class="w-8 h-8" alt="">
-          <span>{{ forecast.max }}º</span>
-          <span>{{ forecast.min }}º</span>
-        </div>
-      </div>
+    <div v-else class="h-screen flex justify-center items-center">
+      <h1>Carregando...</h1>
     </div>
-    <Map v-if="centerMap" :centerMap="centerMap" :key="mapKey"/>
   </div>
 </template>
+
+<style></style>
