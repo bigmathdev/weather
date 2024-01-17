@@ -8,16 +8,14 @@ import Map from '@/components/Map.vue';
 const searchCityName = ref('')
 const searchTimer = ref(null)
 const centerMap = ref()
-const key = ref(0)
-const mapKey = ref(0)
 const imageURL = (imageName, format) => new URL(`../assets/icons/${imageName}.${format}`, import.meta.url).href
-const infoWeatherStorage = ref()
+const infoWeatherStorage = ref(JSON.parse(localStorage.getItem('infoWeather')))
+const selectedInfoMap = ref('precipitationIntensity')
 
 const searchCenterMap = (cityName) => {
   axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${cityName}.json?proximity=ip&access_token=pk.eyJ1IjoiYmlnbWF0aGRldiIsImEiOiJjbHJiNTdpencwa2UxMnFtd3gzcGNyNmxiIn0.qvrW30umZJRA0LJfQkDlnw`)
     .then(response => {
       centerMap.value = response.data.features[0].center
-      mapKey.value++
     })
     .catch(error => {
       console.log(error)
@@ -30,20 +28,19 @@ const stringifyAndParseInfoWeather = (object) => {
 }
 
 const searchCity = () => {
-  // Se for por input do usuário vai carregar pela variável searchCityName e se for a primeira vez da requisição vai carregar pelo IP
+  // Se for por input do usuário vai carregar pela variável searchCityName e se for a primeira vez da requisição, onde ela não tem nenhum dado armazenado no localStorage, será carregado pelo IP
   axios.get(`https://api.hgbrasil.com/weather?format=json-cors&key=a70a1d42${searchCityName.value ? `&city_name=${searchCityName.value}` : '&user_ip=remote'}`)
     .then(response => {
       if (searchCityName.value) {
         stringifyAndParseInfoWeather(response)
         searchCenterMap(infoWeatherStorage.value.city_name)
         searchCityName.value = ''
-        key.value++
       } else {
         setTimeout(() => {
           stringifyAndParseInfoWeather(response)
           searchCenterMap(infoWeatherStorage.value.city_name)
-        }, 3000)
-        infoWeatherStorage.value.forecast.shift()
+          infoWeatherStorage.value.forecast.shift()
+        }, 2000)
       }
     })
     .catch(error => {
@@ -63,6 +60,8 @@ watch(searchCityName, (value) => {
 onMounted(() => {
   if (infoWeatherStorage.value == null || infoWeatherStorage.value == undefined) {
     searchCity()
+  } else {
+    searchCenterMap(infoWeatherStorage.value.city_name)
   }
 })
 
@@ -72,7 +71,7 @@ onMounted(() => {
   <div>
     <div class="container flex flex-col items-center gap-8 py-9 px-6" v-if="infoWeatherStorage">
       <header class="flex justify-between w-full items-center">
-        <Search v-model="searchCityName" :key="key" />
+        <Search v-model="searchCityName" />
         <input type="checkbox" value="night"
           class="toggle theme-controller bg-amber-300 border-sky-400 [--tglbg:theme(colors.sky.500)] checked:bg-blue-300 checked:border-blue-800 checked:[--tglbg:theme(colors.blue.900)] row-start-1 col-start-1 col-span-2" />
       </header>
@@ -135,8 +134,22 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div class="layout">
-        <Map v-if="centerMap" :centerMap="centerMap" :key="mapKey" />
+      <div class="relative">
+        <div class="absolute top-2 right-2">
+          <div class="dropdown dropdown-left">
+            <div tabindex="0" role="button" class="btn btn-xs m-1">{{ selectedInfoMap }}</div>
+            <select v-model="selectedInfoMap" tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-fit">
+              <option value="precipitationIntensity"><a>Intensidade da precipitação</a></option>
+              <option value="temperature"><a>Temperatura</a></option>
+              <option value="dewPoint"><a>Orvalho</a></option>
+              <option value="humidity"><a>Umidade</a></option>
+              <option value="windSpeed"><a>Velocidade do vento</a></option>
+              <option value="windDirection"><a>Direção do vento</a></option>
+              <option value="visibility"><a>Visibilidade</a></option>
+            </select>
+          </div>
+        </div>
+        <Map v-if="centerMap" :dataField="selectedInfoMap" :centerMap="centerMap" />
       </div>
     </div>
     <div v-else class="h-screen flex justify-center items-center">
