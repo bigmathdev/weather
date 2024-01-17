@@ -18,9 +18,12 @@ const toggleTileMap = () => {
   map.value.getSource('infoWeather').reload();
 }
 
-watch(() => props.centerMap, (value) => {
-  console.log('centerMap mudou', value)
-    map.value.setCenter(value)
+watch(() => props.centerMap, (newValue, oldValue) => {
+    map.value.setCenter(newValue)
+    map.value.flyTo({
+      center: [oldValue, newValue],
+      essential: true
+    })
 })
 
 watch(() => props.dataField, (newValue, oldValue) => {

@@ -52,6 +52,7 @@ watch(searchCityName, (value) => {
   clearTimeout(searchTimer.value)
   if (value) {
     searchTimer.value = setTimeout(() => {
+      // searchCenterMap(value)
       searchCity()
     }, 2000)
   }
@@ -137,8 +138,13 @@ onMounted(() => {
       <div class="relative">
         <div class="absolute top-2 right-2">
           <div class="dropdown dropdown-left">
-            <div tabindex="0" role="button" class="btn btn-xs m-1">{{ selectedInfoMap }}</div>
-            <select v-model="selectedInfoMap" tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-fit">
+            <div tabindex="0" role="button" class="btn btn-xs m-1">{{ selectedInfoMap === 'precipitationIntensity' ?
+              'Intensidade da precipitação' : '' || selectedInfoMap === 'temperature' ? 'Temperatura' : '' ||
+                selectedInfoMap === 'dewPoint' ? 'Orvalho' : '' || selectedInfoMap === 'humidity' ? 'Umidade' : '' ||
+                  selectedInfoMap === 'windSpeed' ? 'Velocidade do vento' : '' || selectedInfoMap === 'windDirection' ?
+                  'Direção do vento' : '' || selectedInfoMap === 'visibility' ? 'Visibilidade' : '' }}</div>
+            <select v-model="selectedInfoMap" tabindex="0"
+              class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-fit">
               <option value="precipitationIntensity"><a>Intensidade da precipitação</a></option>
               <option value="temperature"><a>Temperatura</a></option>
               <option value="dewPoint"><a>Orvalho</a></option>
@@ -155,7 +161,6 @@ onMounted(() => {
     <div v-else class="h-screen flex justify-center items-center">
       <h1>Carregando...</h1>
     </div>
-  </div>
-</template>
+</div></template>
 
 <style></style>
