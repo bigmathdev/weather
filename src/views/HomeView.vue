@@ -5,6 +5,8 @@ import axios from "axios";
 import Search from "@/components/Search.vue";
 import Map from "@/components/Map.vue";
 
+const mapboxKey = import.meta.env.VITE_KEY_MAPBOX
+const hgBrasilKey = import.meta.env.VITE_KEY_HG_BRASIL
 const searchCityName = ref("");
 const searchTimer = ref(null);
 const centerMap = ref();
@@ -15,7 +17,7 @@ const infoWeatherStorage = ref(JSON.parse(localStorage.getItem("infoWeather")));
 const searchCenterMap = (cityName) => {
   axios
     .get(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${cityName}.json?proximity=ip&access_token=pk.eyJ1IjoiYmlnbWF0aGRldiIsImEiOiJjbHJiNTdpencwa2UxMnFtd3gzcGNyNmxiIn0.qvrW30umZJRA0LJfQkDlnw`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${cityName}.json?proximity=ip&access_token=${mapboxKey}`
     )
     .then((response) => {
       centerMap.value = response.data.features[0].center;
@@ -82,7 +84,7 @@ const searchCity = () => {
   // Se for por input do usuário vai carregar pela variável searchCityName e se for a primeira vez da requisição, onde ela não tem nenhum dado armazenado no localStorage, será carregado pelo IP
   axios
     .get(
-      `https://api.hgbrasil.com/weather?format=json-cors&key=a70a1d42${searchCityName.value
+      `https://api.hgbrasil.com/weather?format=json-cors&key=${hgBrasilKey}${searchCityName.value
         ? `&city_name=${searchCityName.value}`
         : "&user_ip=remote"
       }`
@@ -116,10 +118,7 @@ watch(searchCityName, (value) => {
 });
 
 onMounted(() => {
-  if (
-    infoWeatherStorage.value == null ||
-    infoWeatherStorage.value == undefined
-  ) {
+  if ( infoWeatherStorage.value == null || infoWeatherStorage.value == undefined ) {
     searchCity();
   } else {
     searchCenterMap(infoWeatherStorage.value.city_name);

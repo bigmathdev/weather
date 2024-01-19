@@ -1,14 +1,18 @@
 <script setup>
 import mapboxgl from "mapbox-gl";
 import { computed, onMounted, ref, watch } from "vue";
-mapboxgl.accessToken = 'pk.eyJ1IjoiYmlnbWF0aGRldiIsImEiOiJjbHJiNTdpencwa2UxMnFtd3gzcGNyNmxiIn0.qvrW30umZJRA0LJfQkDlnw'
+
 
 const mapContainer = ref(null)
 const map = ref()
-const APIkey = '5okkmwDU3kpUj5y4nXMqIEmwKzy5v3yI'
+const APIkey = import.meta.env.VITE_KEY_TOMORROW
+const mapboxKey = import.meta.env.VITE_KEY_MAPBOX
 const timeStamp = new Date().toISOString()
 const selectedInfoMap = ref('precipitationIntensity')
 const dropdownOpen = ref(false)
+
+mapboxgl.accessToken = mapboxKey
+
 
 const props = defineProps({
   centerMap: Array,
@@ -75,29 +79,30 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="mapContainer" class="map-container">
+  <div class="relative w-full">
+    <div ref="mapContainer" class="map-container" />
     <div class="absolute z-[1] top-2 right-2">
-      <div class="dropdown dropdown-bottom dropdown-end">
-        <div tabindex="0" role="button" @click="dropdownOpen = !dropdownOpen" class="btn btn-xs m-1">{{ infoMapText }}
+        <div class="dropdown dropdown-bottom dropdown-end">
+          <div tabindex="0" role="button" @click="dropdownOpen = !dropdownOpen" class="btn btn-xs m-1">{{ infoMapText }}
+          </div>
+          <ul tabindex="0" v-show="dropdownOpen"
+            class="dropdown-content z-[1] menu p-2 text-xs shadow bg-base-100 rounded-box w-52 flex flex-col gap-1">
+            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'precipitationIntensity', dropdownOpen = !dropdownOpen">Intensidade da precipitação</li>
+            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'temperature', dropdownOpen = !dropdownOpen">Temperatura</li>
+            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'dewPoint', dropdownOpen = !dropdownOpen">Orvalho</li>
+            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'humidity', dropdownOpen = !dropdownOpen">Umidade</li>
+            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'windSpeed', dropdownOpen = !dropdownOpen">Velocidade do vento</li>
+            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'windDirection', dropdownOpen = !dropdownOpen">Direção do vento</li>
+            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'visibility', dropdownOpen = !dropdownOpen">Visibilidade</li>
+          </ul>
         </div>
-        <ul tabindex="0" v-show="dropdownOpen"
-          class="dropdown-content z-[1] menu p-2 text-xs shadow bg-base-100 rounded-box w-52 flex flex-col gap-1">
-          <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'precipitationIntensity', dropdownOpen = !dropdownOpen">Intensidade da precipitação</li>
-          <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'temperature', dropdownOpen = !dropdownOpen">Temperatura</li>
-          <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'dewPoint', dropdownOpen = !dropdownOpen">Orvalho</li>
-          <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'humidity', dropdownOpen = !dropdownOpen">Umidade</li>
-          <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'windSpeed', dropdownOpen = !dropdownOpen">Velocidade do vento</li>
-          <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'windDirection', dropdownOpen = !dropdownOpen">Direção do vento</li>
-          <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'visibility', dropdownOpen = !dropdownOpen">Visibilidade</li>
-        </ul>
       </div>
-    </div>
   </div>
 </template>
 
 <style>
 .map-container {
-  @apply flex-1 w-full relative;
+  @apply flex-1;
 }
 
 .mapboxgl-canvas {
