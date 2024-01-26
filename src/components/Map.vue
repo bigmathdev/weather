@@ -1,6 +1,7 @@
 <script setup>
 import mapboxgl from "mapbox-gl";
 import { computed, onMounted, ref, watch } from "vue";
+import IndexMap from '../components/IndexMap.vue'
 
 
 const mapContainer = ref(null)
@@ -82,21 +83,30 @@ onMounted(() => {
   <div class="relative w-full">
     <div ref="mapContainer" class="map-container" />
     <div class="absolute z-[1] top-2 right-2">
-        <div class="dropdown dropdown-bottom dropdown-end">
-          <div tabindex="0" role="button" @click="dropdownOpen = !dropdownOpen" class="btn btn-xs m-1">{{ infoMapText }}
-          </div>
-          <ul tabindex="0" v-show="dropdownOpen"
-            class="dropdown-content z-[1] menu p-2 text-xs shadow bg-base-100 rounded-box w-52 flex flex-col gap-1">
-            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'precipitationIntensity', dropdownOpen = !dropdownOpen">Intensidade da precipitação</li>
-            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'temperature', dropdownOpen = !dropdownOpen">Temperatura</li>
-            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'dewPoint', dropdownOpen = !dropdownOpen">Orvalho</li>
-            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'humidity', dropdownOpen = !dropdownOpen">Umidade</li>
-            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'windSpeed', dropdownOpen = !dropdownOpen">Velocidade do vento</li>
-            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'windDirection', dropdownOpen = !dropdownOpen">Direção do vento</li>
-            <li class="border-b-[1px] border-white pb-1" @click="selectedInfoMap = 'visibility', dropdownOpen = !dropdownOpen">Visibilidade</li>
-          </ul>
+      <div class="dropdown dropdown-bottom dropdown-end">
+        <div tabindex="0" role="button" @click="dropdownOpen = !dropdownOpen" class="btn btn-xs m-1">{{ infoMapText }}
         </div>
+        <ul tabindex="0" v-show="dropdownOpen"
+          class="dropdown-content z-[1] menu p-2 text-xs shadow bg-base-100 rounded-box w-52 flex flex-col gap-1">
+          <li class="border-b-[1px] border-white pb-1"
+            @click="selectedInfoMap = 'precipitationIntensity', dropdownOpen = !dropdownOpen">Intensidade da precipitação
+          </li>
+          <li class="border-b-[1px] border-white pb-1"
+            @click="selectedInfoMap = 'temperature', dropdownOpen = !dropdownOpen">Temperatura</li>
+          <li class="border-b-[1px] border-white pb-1"
+            @click="selectedInfoMap = 'dewPoint', dropdownOpen = !dropdownOpen">Orvalho</li>
+          <li class="border-b-[1px] border-white pb-1"
+            @click="selectedInfoMap = 'humidity', dropdownOpen = !dropdownOpen">Umidade</li>
+          <li class="border-b-[1px] border-white pb-1"
+            @click="selectedInfoMap = 'windSpeed', dropdownOpen = !dropdownOpen">Velocidade do vento</li>
+          <li class="border-b-[1px] border-white pb-1"
+            @click="selectedInfoMap = 'windDirection', dropdownOpen = !dropdownOpen">Direção do vento</li>
+          <li class="border-b-[1px] border-white pb-1"
+            @click="selectedInfoMap = 'visibility', dropdownOpen = !dropdownOpen">Visibilidade</li>
+        </ul>
       </div>
+    </div>
+    <IndexMap />
   </div>
 </template>
 
@@ -106,10 +116,9 @@ onMounted(() => {
 }
 
 .mapboxgl-canvas {
-  @apply rounded-3xl h-[15rem];
+  @apply rounded-t-3xl h-[15rem];
 }
 
 .mapboxgl-control-container {
   @apply hidden;
-}
-</style>
+}</style>
