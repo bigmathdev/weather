@@ -106,7 +106,7 @@ onMounted(() => {
         </ul>
       </div>
     </div>
-    <IndexMap />
+    <IndexMap  :selectedInfoMap="selectedInfoMap"/>
   </div>
 </template>
 

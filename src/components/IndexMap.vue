@@ -1,6 +1,32 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
+const props = defineProps(['selectedInfoMap'])
+
+const colors = ref()
+
+const indexPrecipitationIntensity = ref({
+  0: {
+    name: 0,
+    color: '#ffffff'
+  },
+  1: {
+    name: 0.36,
+    color: '#9aea74'
+  },
+  2: {
+    name: 2,
+    color: '#2e8401'
+  },
+  3: {
+    name: 7,
+    color: '#ff9101'
+  },
+  4: {
+    name: 50,
+    color: '#89120c'
+  },
+})
 const indexTemperature = ref({
   0: {
     name: -34,
@@ -67,18 +93,91 @@ const indexTemperature = ref({
     color: 'rgb(155,23,6)'
   }
 })
+const indexHumidity = ref({
+  0: {
+    name: '10%',
+    color: '#fff5c6'
+  },
+  1: {
+    name: '20%',
+    color: '#ffeead'
+  },
+  2: {
+    name: '30%',
+    color: '#ffde95'
+  },
+  3: {
+    name: '40%',
+    color: '#f7c87a'
+  },
+  4: {
+    name: '50%',
+    color: '#d1a266'
+  },
+  5: {
+    name: '60%',
+    color: '#a27a59'
+  },
+  6: {
+    name: '70%',
+    color: '#814e58'
+  },
+  7: {
+    name: '80%',
+    color: '#752c6c'
+  },
+  8: {
+    name: '100%',
+    color: '#51105f'
+  }
 
-const generateColor = computed(() => {
-  const color = Object.values(indexTemperature.value).map(temperature => temperature.color).join(', ')
+})
+const indexwindSpeed = ref({})
+const indexWindDirection = ref({})
+const indexVisibility = ref({})
 
-  return `linear-gradient(to right, ${color})`
+
+const generateColor = (index) => {
+  const color = Object.values(index).map(temp => temp.color).join(', ')
+  colors.value = `linear-gradient(to right, ${color})`
+}
+
+watch(() => props.selectedInfoMap, (value) => {
+  colors.value = ''
+  switch (value) {
+    case 'precipitationIntensity':
+      return generateColor(indexPrecipitationIntensity.value)
+    case 'temperature' || 'dewPoint':
+      return generateColor(indexTemperature.value)
+    case 'humidity':
+      return generateColor(indexHumidity.value)
+    case 'windSpeed':
+      return generateColor(indexwindSpeed.value)
+    case 'windDirection':
+      return generateColor(indexWindDirection.value)
+    case 'visibility':
+      return generateColor(indexVisibility.value)
+  }
+})
+
+onMounted(() => {
+  generateColor(indexPrecipitationIntensity.value)
 })
 </script>
 
 <template>
-  <div class="flex justify-between items-center rounded-b-3xl w-full h-6 px-2" :style="{'background': generateColor}">
-    <div class="text-[8px] font-bold" v-for="index in Object.keys(indexTemperature)" :key="index">
+  <div class="relative flex justify-between items-center rounded-b-3xl w-full h-8 px-2" :style="{ 'background': colors }">
+    <div v-if="props.selectedInfoMap === 'precipitationIntensity'" class="text-[8px] font-bold"
+      v-for="index in Object.keys(indexPrecipitationIntensity)" :key="index">
+      {{ indexPrecipitationIntensity[index].name }}
+    </div>
+    <div v-else-if="props.selectedInfoMap === 'temperature'" class="text-[8px] font-bold"
+      v-for="index in Object.keys(indexTemperature)">
       {{ indexTemperature[index].name }}
+    </div>
+    <div v-else-if="props.selectedInfoMap === 'humidity'" class="text-[8px] font-bold"
+      v-for="index in Object.keys(indexHumidity)">
+      {{ indexHumidity[index].name }}
     </div>
   </div>
 </template>
