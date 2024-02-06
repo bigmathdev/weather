@@ -118,7 +118,7 @@ watch(searchCityName, (value) => {
 });
 
 onMounted(() => {
-  if ( infoWeatherStorage.value == null || infoWeatherStorage.value == undefined ) {
+  if (infoWeatherStorage.value == null || infoWeatherStorage.value == undefined) {
     searchCity();
   } else {
     searchCenterMap(infoWeatherStorage.value.city_name);

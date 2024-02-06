@@ -3,7 +3,6 @@ import mapboxgl from "mapbox-gl";
 import { computed, onMounted, ref, watch } from "vue";
 import IndexMap from '../components/IndexMap.vue'
 
-
 const mapContainer = ref(null)
 const map = ref()
 const APIkey = import.meta.env.VITE_KEY_TOMORROW
@@ -14,7 +13,6 @@ const dropdownOpen = ref(false)
 
 mapboxgl.accessToken = mapboxKey
 
-
 const props = defineProps({
   centerMap: Array,
 })
@@ -22,6 +20,16 @@ const props = defineProps({
 const toggleTileMap = () => {
   map.value.getSource('infoWeather').setTiles([`https://api.tomorrow.io/v4/map/tile/{z}/{x}/{y}/${selectedInfoMap.value}/${timeStamp}.png?apikey=${APIkey}`]);
   map.value.getSource('infoWeather').reload();
+}
+
+const mapTiles = {
+  precipitationIntensity: 'Intensidade da precipitação',
+  temperature: 'Temperatura',
+  dewPoint: 'Orvalho',
+  humidity: 'Umidade',
+  windSpeed: 'Velocidade do vento',
+  windDirection: 'Direção do vento',
+  visibility: 'Visibilidade',
 }
 
 const infoMapText = computed(() => {
@@ -43,14 +51,17 @@ const infoMapText = computed(() => {
   }
 })
 
+const handleMapTiles = (map) => {
+  selectedInfoMap.value = map
+  dropdownOpen.value = !dropdownOpen.value
+}
+
 watch(() => props.centerMap, (newValue) => {
   map.value.setCenter(newValue)
 })
 
-watch(selectedInfoMap, (newValue, oldValue) => {
-  if (newValue !== oldValue) {
-    toggleTileMap()
-  }
+watch(selectedInfoMap, () => {
+  toggleTileMap()
 })
 
 onMounted(() => {
@@ -88,29 +99,16 @@ onMounted(() => {
         </div>
         <ul tabindex="0" v-show="dropdownOpen"
           class="dropdown-content z-[1] menu p-2 text-xs shadow bg-base-100 rounded-box w-52 flex flex-col gap-1">
-          <li class="border-b-[1px] border-white pb-1"
-            @click="selectedInfoMap = 'precipitationIntensity', dropdownOpen = !dropdownOpen">Intensidade da precipitação
-          </li>
-          <li class="border-b-[1px] border-white pb-1"
-            @click="selectedInfoMap = 'temperature', dropdownOpen = !dropdownOpen">Temperatura</li>
-          <li class="border-b-[1px] border-white pb-1"
-            @click="selectedInfoMap = 'dewPoint', dropdownOpen = !dropdownOpen">Orvalho</li>
-          <li class="border-b-[1px] border-white pb-1"
-            @click="selectedInfoMap = 'humidity', dropdownOpen = !dropdownOpen">Umidade</li>
-          <li class="border-b-[1px] border-white pb-1"
-            @click="selectedInfoMap = 'windSpeed', dropdownOpen = !dropdownOpen">Velocidade do vento</li>
-          <li class="border-b-[1px] border-white pb-1"
-            @click="selectedInfoMap = 'windDirection', dropdownOpen = !dropdownOpen">Direção do vento</li>
-          <li class="border-b-[1px] border-white pb-1"
-            @click="selectedInfoMap = 'visibility', dropdownOpen = !dropdownOpen">Visibilidade</li>
+          <li class="border-b-[1px] border-white pb-1" v-for="(map, index) in Object.keys(mapTiles)"
+            @click="handleMapTiles(map)">{{ Object.values(mapTiles)[index] }}</li>
         </ul>
       </div>
     </div>
-    <IndexMap  :selectedInfoMap="selectedInfoMap"/>
+    <IndexMap :selectedInfoMap="selectedInfoMap" />
   </div>
 </template>
 
-<style>
+<style scoped>
 .map-container {
   @apply flex-1;
 }
@@ -121,4 +119,5 @@ onMounted(() => {
 
 .mapboxgl-control-container {
   @apply hidden;
-}</style>
+}
+</style>
