@@ -336,7 +336,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="relative flex justify-between items-center rounded-t-3xl w-full h-8 px-2" :style="{ 'background': colors }">
+  <div class="relative flex justify-between items-center rounded-b-3xl w-full h-8 px-2" :style="{ 'background': colors }">
     <div v-for="(item, chave) in Object.values(indexes[props.selectedInfoMap])" :key="chave">
       <div v-if="props.selectedInfoMap === 'windDirection'">
         <Icon class="text-black font-bold w-4 h-4" :icon="item.name" />

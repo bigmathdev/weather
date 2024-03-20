@@ -50,7 +50,7 @@ const handleMapTiles = (map) => {
         </div>
         <ul tabindex="0" v-show="dropdownOpen"
           class="dropdown-content z-[1] menu p-2 text-xs shadow bg-base-100 rounded-box w-52 flex flex-col gap-1">
-          <li class="border-b-[1px] border-white pb-1" v-for="(map, index) in Object.keys(mapTiles)"
+          <li class="border-b-[1px] border-white pb-1 cursor-pointer hover:bg-blue-600" v-for="(map, index) in Object.keys(mapTiles)"
             @click="handleMapTiles(map)">{{ Object.values(mapTiles)[index] }}</li>
         </ul>
       </div>

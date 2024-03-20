@@ -58,18 +58,22 @@ onMounted(() => {
 
 <template>
   <div class="relative w-full">
-    <IndexMap :selectedInfoMap="selectedInfoMap" />
     <div ref="mapContainer" class="map-container" />
-    <Dropdown @selected-info-map="(value) => selectedInfoMap = value"/> 
+    <Dropdown @selected-info-map="(value) => selectedInfoMap = value"/>
+    <IndexMap :selectedInfoMap="selectedInfoMap" />
   </div>
 </template>
 
-<style scoped>
+<style>
 .map-container {
   @apply flex-1;
 }
 
 .mapboxgl-canvas {
   @apply rounded-t-3xl h-[15rem];
+}
+
+.mapboxgl-ctrl {
+  @apply hidden;
 }
 </style>
