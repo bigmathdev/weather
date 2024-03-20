@@ -127,7 +127,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="lg:flex lg:justify-center">
     <div class="container flex flex-col items-center gap-8 py-9 px-6" v-if="infoWeatherStorage">
       <header class="flex justify-between w-full items-center">
         <Search v-model="searchCityName" />
