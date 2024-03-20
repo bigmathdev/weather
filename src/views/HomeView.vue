@@ -32,53 +32,26 @@ const stringifyAndParseInfoWeather = (object) => {
   infoWeatherStorage.value = JSON.parse(localStorage.getItem("infoWeather"));
 };
 
-const moonPhase = computed(() => {
-  const moon = infoWeatherStorage.value.moon_phase;
+const moonPhase = {
+  new: "Lua nova",
+  waxing_crescent: "Lua crescente",
+  first_quarter: "Quarto crescente",
+  waxing_gibbous: "Gibosa crescente",
+  full: "Lua cheia",
+  waning_gibbous: "Gibosa minguante",
+  last_quarter: "Quarto minguante",
+  waning_crescent: "Lua minguante"
+}
 
-  switch (moon) {
-    case "new":
-      return "Lua nova";
-    case "waxing_crescent":
-      return "Lua crescente";
-    case "first_quarter":
-      return "Quarto crescente";
-    case "waxing_gibbous":
-      return "Gibosa crescente";
-    case "full":
-      return "Lua cheia";
-    case "waning_gibbous":
-      return "Gibosa minguante";
-    case "last_quarter":
-      return "Quarto minguante";
-    case "waning_crescent":
-      return "Lua minguante";
-    default:
-      return "";
-  }
-});
-
-const forecastWeekday = computed(() => {
-  return infoWeatherStorage.value.forecast.map((forecast) => {
-    switch (forecast.weekday) {
-      case "Dom":
-        return "Domingo";
-      case "Seg":
-        return "Segunda";
-      case "Ter":
-        return "Terça";
-      case "Qua":
-        return "Quarta";
-      case "Qui":
-        return "Quinta";
-      case "Sex":
-        return "Sexta";
-      case "Sáb":
-        return "Sábado";
-      default:
-        return "";
-    }
-  });
-});
+const forecastWeekday = {
+  Dom: "Domingo",
+  Seg: "Segunda",
+  Ter: "Terça",
+  Qua: "Quarta",
+  Qui: "Quinta",
+  Sex: "Sexta",
+  Sáb: "Sábado"
+}
 
 const searchCity = () => {
   // Se for por input do usuário vai carregar pela variável searchCityName e se for a primeira vez da requisição, onde ela não tem nenhum dado armazenado no localStorage, será carregado pelo IP
@@ -158,7 +131,7 @@ onMounted(() => {
               Vento: {{ infoWeatherStorage.wind_speedy }}
             </p>
             <p class="gap-2 min-h-6 flex items-center">
-              {{ moonPhase }}
+              {{ moonPhase[infoWeatherStorage.moon_phase] }}
               <img :src="imageURL(infoWeatherStorage.moon_phase, 'png')" class="w-6 h-6" alt="" />
             </p>
           </div>
@@ -170,8 +143,8 @@ onMounted(() => {
           <Icon icon="mdi:calendar-outline" />
         </div>
         <div class="flex flex-col gap-2 w-full justify-between">
-          <div class="flex items-center justify-between" v-for="(forecast, index) in infoWeatherStorage.forecast">
-            <span class="min-w-[4.12rem]">{{ forecastWeekday[index] }}</span>
+          <div class="flex items-center justify-between" v-for="(forecast) in infoWeatherStorage.forecast">
+            <span class="min-w-[4.12rem]">{{ forecastWeekday[forecast.weekday] }}</span>
             <span class="min-w-[2.4rem]">{{ forecast.rain_probability }}%</span>
             <img :src="imageURL(forecast.condition, 'svg')" class="w-8 h-8" alt="" />
             <span>{{ forecast.max }}º</span>

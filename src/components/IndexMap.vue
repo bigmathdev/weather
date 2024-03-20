@@ -1,11 +1,9 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { ref, computed } from 'vue';
 
 import { Icon } from '@iconify/vue';
 
 const props = defineProps(['selectedInfoMap'])
-
-const colors = ref()
 
 const indexes = ref({
   precipitationIntensity: {
@@ -320,23 +318,15 @@ const indexes = ref({
   }
 })
 
-const generateColor = () => {
+const generateColor = computed(() => {
   const color = Object.values(indexes.value[props.selectedInfoMap]).map(m => m.color).join(', ')
-  colors.value = `linear-gradient(to right, ${color})`
-}
-
-watch(() => props.selectedInfoMap, () => {
-  colors.value = ''
-  generateColor()
+  return `linear-gradient(to right, ${color})`
 })
 
-onMounted(() => {
-  generateColor()
-})
 </script>
 
 <template>
-  <div class="relative flex justify-between items-center rounded-b-3xl w-full h-8 px-2" :style="{ 'background': colors }">
+  <div class="relative flex justify-between items-center rounded-b-3xl w-full h-8 px-2" :style="{ 'background': generateColor }">
     <div v-for="(item, chave) in Object.values(indexes[props.selectedInfoMap])" :key="chave">
       <div v-if="props.selectedInfoMap === 'windDirection'">
         <Icon class="text-black font-bold w-4 h-4" :icon="item.name" />

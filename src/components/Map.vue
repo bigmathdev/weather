@@ -1,6 +1,6 @@
 <script setup>
 import mapboxgl from "mapbox-gl";
-import { computed, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import IndexMap from '../components/IndexMap.vue';
 import Dropdown from '../components/Dropdown.vue';
 
