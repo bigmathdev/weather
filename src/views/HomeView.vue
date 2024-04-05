@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { Icon } from "@iconify/vue";
 import axios from "axios";
+import { useLocalStorage } from '@vueuse/core'
 import Search from "@/components/Search.vue";
 import Map from "@/components/Map.vue";
 
@@ -12,7 +13,7 @@ const searchTimer = ref(null);
 const centerMap = ref();
 const imageURL = (imageName, format) =>
   new URL(`../assets/icons/${imageName}.${format}`, import.meta.url).href;
-const infoWeatherStorage = ref(JSON.parse(localStorage.getItem("infoWeather")));
+const infoWeatherStorage = useLocalStorage('infoWeather')
 
 const searchCenterMap = (cityName) => {
   axios
@@ -25,11 +26,6 @@ const searchCenterMap = (cityName) => {
     .catch((error) => {
       console.log(error);
     });
-};
-
-const stringifyAndParseInfoWeather = (object) => {
-  localStorage.setItem("infoWeather", JSON.stringify(object.data.results));
-  infoWeatherStorage.value = JSON.parse(localStorage.getItem("infoWeather"));
 };
 
 const moonPhase = {
@@ -53,6 +49,10 @@ const forecastWeekday = {
   Sáb: "Sábado"
 }
 
+const parseInfoWeather = computed(() => {
+  return infoWeatherStorage.value ? JSON.parse(infoWeatherStorage.value) : {}
+})
+
 const searchCity = () => {
   // Se for por input do usuário vai carregar pela variável searchCityName e se for a primeira vez da requisição, onde ela não tem nenhum dado armazenado no localStorage, será carregado pelo IP
   axios
@@ -64,14 +64,14 @@ const searchCity = () => {
     )
     .then((response) => {
       if (searchCityName.value) {
-        stringifyAndParseInfoWeather(response);
-        searchCenterMap(infoWeatherStorage.value.city_name);
+        infoWeatherStorage.value = JSON.stringify(response.data.results)
+        searchCenterMap(parseInfoWeather.value.city_name);
         searchCityName.value = "";
       } else {
         setTimeout(() => {
-          stringifyAndParseInfoWeather(response);
-          searchCenterMap(infoWeatherStorage.value.city_name);
-          infoWeatherStorage.value.forecast.shift();
+          infoWeatherStorage.value = JSON.stringify(response.data.results)
+          searchCenterMap(parseInfoWeather.value.city_name);
+          parseInfoWeather.value.forecast.shift()
         }, 2000);
       }
     })
@@ -94,45 +94,45 @@ onMounted(() => {
   if (infoWeatherStorage.value == null || infoWeatherStorage.value == undefined) {
     searchCity();
   } else {
-    searchCenterMap(infoWeatherStorage.value.city_name);
+    searchCenterMap(parseInfoWeather.value.city_name);
   }
 });
 </script>
 
 <template>
   <div class="lg:flex lg:justify-center">
-    <div class="container flex flex-col items-center gap-8 py-9 px-6" v-if="infoWeatherStorage">
+    <div class="container flex flex-col items-center gap-8 py-9 px-6" v-if="Object.keys(parseInfoWeather).length">
       <header class="flex justify-between w-full items-center">
         <Search v-model="searchCityName" />
         <input type="checkbox" value="night"
           class="toggle theme-controller bg-amber-300 border-sky-400 [--tglbg:theme(colors.sky.500)] checked:bg-blue-300 checked:border-blue-800 checked:[--tglbg:theme(colors.blue.900)] row-start-1 col-start-1 col-span-2" />
       </header>
       <div class="info-weather w-full text-center flex flex-col items-center">
-        <img class="w-48 h-48" :src="imageURL(infoWeatherStorage.condition_slug, 'svg')" alt="" />
-        <p>{{ infoWeatherStorage.description }}</p>
-        <span class="text-[4rem] font-bold">{{ infoWeatherStorage.temp }}º</span>
+        <img class="w-48 h-48" :src="imageURL(parseInfoWeather.condition_slug, 'svg')" alt="" />
+        <p>{{ parseInfoWeather.description }}</p>
+        <span class="text-[4rem] font-bold">{{ parseInfoWeather.temp }}º</span>
 
         <div class="flex gap-2">
-          <span class="text-base font-medium">Máx: {{ infoWeatherStorage.forecast[0].max }}º</span>
-          <span class="text-base font-medium">Min: {{ infoWeatherStorage.forecast[0].min }}º</span>
+          <span class="text-base font-medium">Máx: {{ parseInfoWeather.forecast[0].max }}º</span>
+          <span class="text-base font-medium">Min: {{ parseInfoWeather.forecast[0].min }}º</span>
         </div>
-        <span>{{ infoWeatherStorage.city }}</span>
+        <span>{{ parseInfoWeather.city }}</span>
         <div class="w-full flex justify-around text-xs pt-6">
           <div class="flex flex-col gap-2 items-start justify-between">
             <p class="min-h-6 flex items-center">
-              Nascer do sol: {{ infoWeatherStorage.sunrise }}
+              Nascer do sol: {{ parseInfoWeather.sunrise }}
             </p>
             <p class="min-h-6 flex items-center text-center">
-              Pôr do sol: {{ infoWeatherStorage.sunset }}
+              Pôr do sol: {{ parseInfoWeather.sunset }}
             </p>
           </div>
           <div class="flex flex-col gap-2 items-start justify-between">
             <p class="min-h-6 flex items-center">
-              Vento: {{ infoWeatherStorage.wind_speedy }}
+              Vento: {{ parseInfoWeather.wind_speedy }}
             </p>
             <p class="gap-2 min-h-6 flex items-center">
-              {{ moonPhase[infoWeatherStorage.moon_phase] }}
-              <img :src="imageURL(infoWeatherStorage.moon_phase, 'png')" class="w-6 h-6" alt="" />
+              {{ moonPhase[parseInfoWeather.moon_phase] }}
+              <img :src="imageURL(parseInfoWeather.moon_phase, 'png')" class="w-6 h-6" alt="" />
             </p>
           </div>
         </div>
@@ -143,7 +143,7 @@ onMounted(() => {
           <Icon icon="mdi:calendar-outline" />
         </div>
         <div class="flex flex-col gap-2 w-full justify-between">
-          <div class="flex items-center justify-between" v-for="(forecast) in infoWeatherStorage.forecast">
+          <div class="flex items-center justify-between" v-for="(forecast) in parseInfoWeather.forecast">
             <span class="min-w-[4.12rem]">{{ forecastWeekday[forecast.weekday] }}</span>
             <span class="min-w-[2.4rem]">{{ forecast.rain_probability }}%</span>
             <img :src="imageURL(forecast.condition, 'svg')" class="w-8 h-8" alt="" />

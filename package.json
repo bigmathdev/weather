@@ -12,6 +12,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@vueuse/core": "^10.9.0",
     "axios": "^1.6.5",
     "gh-pages": "^6.1.1",
     "mapbox-gl": "^3.0.1",
