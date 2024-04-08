@@ -22,8 +22,11 @@ const toggleTileMap = () => {
   map.value.getSource('infoWeather').reload();
 }
 
-watch(() => props.centerMap, (newValue) => {
-  map.value.setCenter(newValue)
+watch(() => props.centerMap, (value) => {
+  map.value.flyTo({
+    center: value,
+    essential: true
+  })
 })
 
 watch(selectedInfoMap, () => {
@@ -40,6 +43,11 @@ onMounted(() => {
   })
 
   map.value.on('load', () => {
+    const styleJson = map.value.getStyle().layers;
+
+    // adiciona o raster a primeira camada da pilha na renderização do mapa
+    const firstSymbolId = ref(styleJson.filter(f => f.type == 'symbol').shift().id);
+
     map.value.addSource('infoWeather', {
       type: 'raster',
       tiles: [`https://api.tomorrow.io/v4/map/tile/{z}/{x}/{y}/${selectedInfoMap.value}/${timeStamp}.png?apikey=${APIkey}`],
@@ -49,9 +57,7 @@ onMounted(() => {
       id: 'radar-tiles',
       type: 'raster',
       source: 'infoWeather',
-      minzoom: 1,
-      maxzoom: 12
-    })
+    }, firstSymbolId.value)
   })
 })
 </script>
@@ -59,7 +65,7 @@ onMounted(() => {
 <template>
   <div class="relative w-full">
     <div ref="mapContainer" class="map-container" />
-    <Dropdown @selected-info-map="(value) => selectedInfoMap = value"/>
+    <Dropdown @selected-info-map="(value) => selectedInfoMap = value" />
     <IndexMap :selectedInfoMap="selectedInfoMap" />
   </div>
 </template>
