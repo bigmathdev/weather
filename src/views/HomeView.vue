@@ -1,32 +1,17 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { Icon } from "@iconify/vue";
-import axios from "axios";
-import { useLocalStorage } from '@vueuse/core'
 import Search from "@/components/Search.vue";
 import Map from "@/components/Map.vue";
+import { useSearchCity } from '../composable/searchCity'
+import { useSearchCenterMap } from '../composable/searchCenterMap'
 
-const mapboxKey = import.meta.env.VITE_KEY_MAPBOX
-const hgBrasilKey = import.meta.env.VITE_KEY_HG_BRASIL
 const searchCityName = ref("");
 const searchTimer = ref(null);
-const centerMap = ref();
 const imageURL = (imageName, format) =>
   new URL(`../assets/icons/${imageName}.${format}`, import.meta.url).href;
-const infoWeatherStorage = useLocalStorage('infoWeather')
-
-const searchCenterMap = (cityName) => {
-  axios
-    .get(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${cityName}.json?proximity=ip&access_token=${mapboxKey}`
-    )
-    .then((response) => {
-      centerMap.value = response.data.features[0].center;
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-};
+const { parseInfoWeather, searchCity } = useSearchCity()
+const { centerMap, searchCenterMap } = useSearchCenterMap()
 
 const moonPhase = {
   new: "Lua nova",
@@ -49,50 +34,23 @@ const forecastWeekday = {
   Sáb: "Sábado"
 }
 
-const parseInfoWeather = computed(() => {
-  return infoWeatherStorage.value ? JSON.parse(infoWeatherStorage.value) : {}
+watch(parseInfoWeather, (value) => {
+  searchCenterMap(value.city_name)
 })
-
-const searchCity = () => {
-  // Se for por input do usuário vai carregar pela variável searchCityName e se for a primeira vez da requisição, onde ela não tem nenhum dado armazenado no localStorage, será carregado pelo IP
-  axios
-    .get(
-      `https://api.hgbrasil.com/weather?format=json-cors&key=${hgBrasilKey}${searchCityName.value
-        ? `&city_name=${searchCityName.value}`
-        : "&user_ip=remote"
-      }`
-    )
-    .then((response) => {
-      if (searchCityName.value) {
-        infoWeatherStorage.value = JSON.stringify(response.data.results)
-        searchCenterMap(parseInfoWeather.value.city_name);
-        searchCityName.value = "";
-      } else {
-        setTimeout(() => {
-          infoWeatherStorage.value = JSON.stringify(response.data.results)
-          searchCenterMap(parseInfoWeather.value.city_name);
-          parseInfoWeather.value.forecast.shift()
-        }, 2000);
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-};
 
 watch(searchCityName, (value) => {
   clearTimeout(searchTimer.value);
   if (value) {
     searchTimer.value = setTimeout(() => {
-      // searchCenterMap(value)
-      searchCity();
+      searchCity(searchCityName.value)
+      searchCityName.value = ''
     }, 2000);
   }
 });
 
 onMounted(() => {
-  if (infoWeatherStorage.value == null || infoWeatherStorage.value == undefined) {
-    searchCity();
+  if (!Object.keys(parseInfoWeather.value).length) {
+    searchCity()
   } else {
     searchCenterMap(parseInfoWeather.value.city_name);
   }
