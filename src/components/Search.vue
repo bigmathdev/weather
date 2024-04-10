@@ -1,11 +1,9 @@
 <script setup>
-const props = defineProps(['modelValue'])
-const emit = defineEmits(['update:modelValue'])
+const model = defineModel()
 </script>
 
 <template>
-  <input type="text" :value="props.modelValue" @input="emit('update:modelValue', $event.target.value)"
-    placeholder="Busque pela cidade" class="input input-bordered input-sm max-w-xs" />
+  <input type="text" v-model="model" placeholder="Busque pela cidade" class="input input-bordered input-sm max-w-xs" />
 </template>
 
 <style></style>

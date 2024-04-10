@@ -25,7 +25,9 @@ const toggleTileMap = () => {
 watch(() => props.centerMap, (value) => {
   map.value.flyTo({
     center: value,
-    essential: true
+    essential: true,
+    speed: 0.2,
+    zoom: 9,
   })
 })
 
@@ -38,7 +40,7 @@ onMounted(() => {
     container: mapContainer.value,
     style: "mapbox://styles/mapbox/streets-v12",
     center: props.centerMap,
-    zoom: 5,
+    zoom: 9,
     antialias: true
   })
 
