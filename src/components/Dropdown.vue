@@ -1,11 +1,11 @@
 <script setup>
-import { ref } from 'vue'
-import { Icon } from '@iconify/vue'
+import { ref } from 'vue';
+import { Icon } from '@iconify/vue';
 
 const emit = defineEmits(['selectedInfoMap'])
 
-const dropdownOpen = ref(false)
-const selectedInfoMap = ref('precipitationIntensity')
+const dropdownOpen = ref(false);
+const selectedInfoMap = ref('precipitationIntensity');
 
 const mapTiles = {
   precipitationIntensity: 'Intensidade da precipitação',
@@ -25,37 +25,18 @@ const handleMapTiles = (map) => {
 </script>
 
 <template>
-  <div class="dropdown-container">
-    <button class="dropdown-button" @click="dropdownOpen = !dropdownOpen">
-      <span>{{ mapTiles[selectedInfoMap] }}</span>
-      <Icon icon="iconamoon:arrow-down-2" />
-    </button>
-    <ul class="dropdown-unordered" v-show="dropdownOpen">
-      <li
-        class="dropdown-list"
-        v-for="(map, index) in Object.keys(mapTiles)"
-        @click="handleMapTiles(map)"
-      >
-        {{ Object.values(mapTiles)[index] }}
-      </li>
-    </ul>
+  <div class="absolute z-[1] top-2 right-2">
+    <div class="dropdown dropdown-bottom dropdown-end">
+      <div tabindex="0" role="button" @click="dropdownOpen = !dropdownOpen" class="btn btn-xs m-1">{{
+        mapTiles[selectedInfoMap] }}
+        <Icon icon="iconamoon:arrow-down-2" />
+      </div>
+      <ul tabindex="0" v-show="dropdownOpen"
+        class="dropdown-content z-[1] menu p-2 text-xs shadow bg-base-100 rounded-box w-52 flex flex-col gap-1">
+        <li class="border-b-[1px] border-white pb-1 cursor-pointer hover:bg-blue-600"
+          v-for="(map, index) in Object.keys(mapTiles)" @click="handleMapTiles(map)">{{ Object.values(mapTiles)[index]
+          }}</li>
+      </ul>
+    </div>
   </div>
 </template>
-
-<style scoped>
-.dropdown-container {
-  @apply absolute right-2 top-2 z-[1] min-w-[170px];
-}
-
-.dropdown-button {
-  @apply flex min-w-[170px] items-center justify-between gap-1 rounded-md bg-[#2e5497] p-1 text-xs;
-}
-
-.dropdown-unordered {
-  @apply absolute z-[1] mt-1 min-w-[170px] rounded-md bg-[#2e5497];
-}
-
-.dropdown-list {
-  @apply cursor-pointer p-2 pb-1 text-xs hover:rounded-md hover:bg-gray-500;
-}
-</style>
