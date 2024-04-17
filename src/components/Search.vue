@@ -4,7 +4,7 @@ const emit = defineEmits(['inputSearch'])
 </script>
 
 <template>
-  <label class="input input-sm input-bordered flex items-center gap-2">
+  <label class="searchContainer">
     <input
       v-model="model"
       type="text"
@@ -28,4 +28,8 @@ const emit = defineEmits(['inputSearch'])
   </label>
 </template>
 
-<style></style>
+<style scoped>
+.searchContainer {
+  @apply input input-sm input-bordered flex items-center gap-2;
+}
+</style>

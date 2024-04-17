@@ -79,7 +79,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="relative w-full">
+  <div class="map">
     <div ref="mapContainer" class="map-container" />
     <Dropdown @selected-info-map="(value) => (selectedInfoMap = value)" />
     <IndexMap :selected-info-map="selectedInfoMap" />
@@ -87,6 +87,10 @@ onMounted(() => {
 </template>
 
 <style>
+.map {
+  @apply relative w-full;
+}
+
 .map-container {
   @apply flex-1;
 }
